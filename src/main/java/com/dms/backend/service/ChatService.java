@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -74,5 +75,9 @@ public class ChatService {
         room.setActive(false);
         room.setClosedAt(LocalDateTime.now());
         chatRoomRepository.save(room);
+    }
+
+    public List<ChatRoom> getUserRooms(String userId) {
+        return chatRoomRepository.findActiveRoomsByUserId(userId);
     }
 }

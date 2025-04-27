@@ -10,6 +10,11 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
+import com.dms.backend.model.ChatMessage;
+import com.dms.backend.model.ChatRoom;
+
 @RestController
 @RequestMapping("/api/chat")
 @CrossOrigin(origins = "http://localhost:3000")
@@ -54,6 +59,11 @@ public class ChatController {
     public ResponseEntity<?> closeChatRoom(@PathVariable String roomId) {
         chatService.closeChatRoom(roomId);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/rooms/user/{userId}")
+    public ResponseEntity<List<ChatRoom>> getUserRooms(@PathVariable String userId) {
+        return ResponseEntity.ok(chatService.getUserRooms(userId));
     }
 }
 

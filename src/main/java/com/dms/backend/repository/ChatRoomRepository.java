@@ -5,6 +5,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
+
 import java.util.Optional;
 
 public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
@@ -16,4 +18,9 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
             @Param("p1") String participant1Id,
             @Param("p2") String participant2Id,
             @Param("active") boolean active);
+            
+    @Query("SELECT r FROM ChatRoom r WHERE " +
+           "(r.participant1Id = :userId OR r.participant2Id = :userId) AND " +
+           "r.active = true ORDER BY r.createdAt DESC")
+    List<ChatRoom> findActiveRoomsByUserId(@Param("userId") String userId);
 }
