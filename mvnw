@@ -8,7 +8,7 @@
 # "License"); you may not use this file except in compliance
 # with the License.  You may obtain a copy of the License at
 #
-#    https://www.apache.org/licenses/LICENSE-2.0
+#    http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing,
 # software distributed under the License is distributed on an
@@ -35,10 +35,6 @@
 # ----------------------------------------------------------------------------
 
 if [ -z "$MAVEN_SKIP_RC" ] ; then
-
-  if [ -f /usr/local/etc/mavenrc ] ; then
-    . /usr/local/etc/mavenrc
-  fi
 
   if [ -f /etc/mavenrc ] ; then
     . /etc/mavenrc
@@ -149,7 +145,7 @@ if [ -z "$JAVACMD" ] ; then
       JAVACMD="$JAVA_HOME/bin/java"
     fi
   else
-    JAVACMD="`\\unset -f command; \\command -v java`"
+    JAVACMD="`which java`"
   fi
 fi
 
@@ -216,36 +212,88 @@ else
       echo "Couldn't find .mvn/wrapper/maven-wrapper.jar, downloading it ..."
     fi
     if [ -n "$MVNW_REPOURL" ]; then
-      jarUrl="$MVNW_REPOURL/org/apache/maven/wrapper/maven-wrapper/3.2.0/maven-wrapper-3.2.0.jar"
+      jarUrl="$MVNW_REPOURL/io/takari/maven-wrapper/0.5.6/maven-wrapper-0.5.6.jar"
     else
-      jarUrl="https://repo.maven.apache.org/maven2/org/apache/maven/wrapper/maven-wrapper/3.2.0/maven-wrapper-3.2.0.jar"
+      jarUrl="https://repo.maven.apache.org/maven2/io/takari/maven-wrapper/0.5.6/maven-wrapper-0.5.6.jar"
     fi
-    while [ "$wdir" != '/' ] ; do
-      if [ -d "$wdir"/.mvn ] ; then
-        if [ -d "$wdir"/.mvn/wrapper ] ; then
-          if [ ! -e "$wdir"/.mvn/wrapper/maven-wrapper.jar ] ; then
-            if [ "$MVNW_VERBOSE" = true ]; then
-              echo " - Downloading to $wdir/.mvn/wrapper/maven-wrapper.jar"
-            fi
-            if [ -e "$wdir/.mvn/wrapper/maven-wrapper.properties" ]; then
-              curl -o "$wdir/.mvn/wrapper/maven-wrapper.jar" \
-                   -L $(grep "wrapperUrl=" "$wdir/.mvn/wrapper/maven-wrapper.properties" | cut -d "=" -f 2)
-            else
-              curl -o "$wdir/.mvn/wrapper/maven-wrapper.jar" "$jarUrl"
-            fi
-            echo " - Compiling MavenWrapperDownloader.java ..."
-            ("$JAVA_HOME/bin/javac" "$wdir/.mvn/wrapper/MavenWrapperDownloader.java")
-            if [ $? -ne 0 ]; then
-              rm -f "$wdir/.mvn/wrapper/MavenWrapperDownloader.class"
-              echo " - Error downloading maven-wrapper.jar"
-              exit 1
-            fi
-          fi
+    while IFS="=" read key value; do
+      case "$key" in (wrapperUrl) jarUrl="$value"; break ;;
+      esac
+    done < "$BASE_DIR/.mvn/wrapper/maven-wrapper.properties"
+    if [ "$MVNW_VERBOSE" = true ]; then
+      echo "Downloading from: $jarUrl"
+    fi
+    wrapperJarPath="$BASE_DIR/.mvn/wrapper/maven-wrapper.jar"
+    if $cygwin; then
+      wrapperJarPath=`cygpath --path --windows "$wrapperJarPath"`
+    fi
+
+    if command -v wget > /dev/null; then
+        if [ "$MVNW_VERBOSE" = true ]; then
+          echo "Found wget ... using wget"
         fi
-      fi
-      wdir=`cd "$wdir/.."; pwd`
-    done
-    echo "${basedir}"
+        if [ -z "$MVNW_USERNAME" ] || [ -z "$MVNW_PASSWORD" ]; then
+            wget "$jarUrl" -O "$wrapperJarPath"
+        else
+            wget --http-user=$MVNW_USERNAME --http-password=$MVNW_PASSWORD "$jarUrl" -O "$wrapperJarPath"
+        fi
+    elif command -v curl > /dev/null; then
+        if [ "$MVNW_VERBOSE" = true ]; then
+          echo "Found curl ... using curl"
+        fi
+        if [ -z "$MVNW_USERNAME" ] || [ -z "$MVNW_PASSWORD" ]; then
+            curl -o "$wrapperJarPath" "$jarUrl" -f
+        else
+            curl --user $MVNW_USERNAME:$MVNW_PASSWORD -o "$wrapperJarPath" "$jarUrl" -f
+        fi
+
+    else
+        if [ "$MVNW_VERBOSE" = true ]; then
+          echo "Falling back to using Java to download"
+        fi
+        javaClass="$BASE_DIR/.mvn/wrapper/MavenWrapperDownloader.java"
+        # For Cygwin, switch paths to Windows format before running javac
+        if $cygwin; then
+          javaClass=`cygpath --path --windows "$javaClass"`
+        fi
+        if [ -e "$javaClass" ]; then
+            if [ ! -e "$BASE_DIR/.mvn/wrapper/MavenWrapperDownloader.class" ]; then
+                if [ "$MVNW_VERBOSE" = true ]; then
+                  echo " - Compiling MavenWrapperDownloader.java ..."
+                fi
+                # Compiling the Java class
+                ("$JAVA_HOME/bin/javac" "$javaClass")
+            fi
+            if [ -e "$BASE_DIR/.mvn/wrapper/MavenWrapperDownloader.class" ]; then
+                # Running the downloader
+                if [ "$MVNW_VERBOSE" = true ]; then
+                  echo " - Running MavenWrapperDownloader.java ..."
+                fi
+                ("$JAVA_HOME/bin/java" -cp .mvn/wrapper MavenWrapperDownloader "$MAVEN_PROJECTBASEDIR")
+            fi
+        fi
+    fi
+fi
+##########################################################################################
+# End of extension
+##########################################################################################
+
+export MAVEN_PROJECTBASEDIR=${MAVEN_BASEDIR:-"$BASE_DIR"}
+if [ "$MVNW_VERBOSE" = true ]; then
+  echo $MAVEN_PROJECTBASEDIR
+fi
+MAVEN_OPTS="$(concat_lines "$MAVEN_PROJECTBASEDIR/.mvn/jvm.config") $MAVEN_OPTS"
+
+# For Cygwin, switch paths to Windows format before running java
+if $cygwin; then
+  [ -n "$M2_HOME" ] &&
+    M2_HOME=`cygpath --path --windows "$M2_HOME"`
+  [ -n "$JAVA_HOME" ] &&
+    JAVA_HOME=`cygpath --path --windows "$JAVA_HOME"`
+  [ -n "$CLASSPATH" ] &&
+    CLASSPATH=`cygpath --path --windows "$CLASSPATH"`
+  [ -n "$MAVEN_PROJECTBASEDIR" ] &&
+    MAVEN_PROJECTBASEDIR=`cygpath --path --windows "$MAVEN_PROJECTBASEDIR"`
 fi
 
 # Provide a "standardized" way to retrieve the CLI args that will
@@ -257,8 +305,6 @@ WRAPPER_LAUNCHER=org.apache.maven.wrapper.MavenWrapperMain
 
 exec "$JAVACMD" \
   $MAVEN_OPTS \
-  $MAVEN_DEBUG_OPTS \
   -classpath "$MAVEN_PROJECTBASEDIR/.mvn/wrapper/maven-wrapper.jar" \
-  "-Dmaven.home=${M2_HOME}" \
-  "-Dmaven.multiModuleProjectDirectory=${MAVEN_PROJECTBASEDIR}" \
+  "-Dmaven.home=${M2_HOME}" "-Dmaven.multiModuleProjectDirectory=${MAVEN_PROJECTBASEDIR}" \
   ${WRAPPER_LAUNCHER} $MAVEN_CONFIG "$@"
