@@ -19,4 +19,4 @@ RUN chmod +x mvnw
 RUN ./mvnw clean package -DskipTests
 
 # Run the application
-CMD ["java", "-jar", "target/DMSbackend-0.0.1-SNAPSHOT.jar"]
+CMD ["java", "-jar", "target/backend-0.0.1-SNAPSHOT.jar"]
