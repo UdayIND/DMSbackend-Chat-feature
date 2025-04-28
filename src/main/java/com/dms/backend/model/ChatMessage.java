@@ -28,4 +28,5 @@ public class ChatMessage {
     private LocalDateTime timestamp = LocalDateTime.now();
 
     private boolean read = false;
+    private boolean delivered = false;
 }

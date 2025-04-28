@@ -11,8 +11,11 @@ import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Arrays;
 
 import com.dms.backend.model.ChatRoom;
+import com.dms.backend.model.UserPresence;
+import org.springframework.http.HttpStatus;
 
 @RestController
 @RequestMapping("/api/chat")
@@ -64,6 +67,52 @@ public class ChatController {
     public ResponseEntity<List<ChatRoom>> getUserRooms(@PathVariable String userId) {
         return ResponseEntity.ok(chatService.getUserRooms(userId));
     }
+
+    // Group chat creation
+    @PostMapping("/rooms/group")
+    public ResponseEntity<?> createGroupChatRoom(@RequestBody GroupChatRoomRequest request) {
+        return ResponseEntity.ok(chatService.createOrGetGroupChatRoom(
+            request.getType(),
+            request.getParticipantIdsList()
+        ));
+    }
+
+    // Presence endpoints
+    @PostMapping("/presence/{userId}/online")
+    public ResponseEntity<?> setUserOnline(@PathVariable String userId) {
+        chatService.setUserOnline(userId);
+        return ResponseEntity.ok().build();
+    }
+    @PostMapping("/presence/{userId}/offline")
+    public ResponseEntity<?> setUserOffline(@PathVariable String userId) {
+        chatService.setUserOffline(userId);
+        return ResponseEntity.ok().build();
+    }
+    @GetMapping("/presence/{userId}")
+    public ResponseEntity<UserPresence> getUserPresence(@PathVariable String userId) {
+        return chatService.isUserOnline(userId)
+            ? ResponseEntity.ok().body(new UserPresence())
+            : ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    }
+
+    // Message status endpoints
+    @PostMapping("/messages/{messageId}/delivered")
+    public ResponseEntity<?> markMessageDelivered(@PathVariable Long messageId) {
+        chatService.markMessageDelivered(messageId);
+        return ResponseEntity.ok().build();
+    }
+    @PostMapping("/messages/{messageId}/read")
+    public ResponseEntity<?> markMessageRead(@PathVariable Long messageId) {
+        chatService.markMessageRead(messageId);
+        return ResponseEntity.ok().build();
+    }
+
+    // Typing status endpoint
+    @PostMapping("/rooms/{roomId}/typing")
+    public ResponseEntity<?> sendTypingStatus(@PathVariable String roomId, @RequestParam String userId, @RequestParam boolean typing) {
+        chatService.sendTypingStatus(roomId, userId, typing);
+        return ResponseEntity.ok().build();
+    }
 }
 
 class ChatMessageRequest {
@@ -88,4 +137,12 @@ class CreateRoomRequest {
     public String getType() { return type; }
     public String getParticipant1Id() { return participant1Id; }
     public String getParticipant2Id() { return participant2Id; }
+}
+
+class GroupChatRoomRequest {
+    private String type;
+    private String[] participantIds;
+    public String getType() { return type; }
+    public String[] getParticipantIds() { return participantIds; }
+    public java.util.List<String> getParticipantIdsList() { return Arrays.asList(participantIds); }
 }

@@ -2,8 +2,10 @@ package com.dms.backend.service;
 
 import com.dms.backend.model.ChatMessage;
 import com.dms.backend.model.ChatRoom;
+import com.dms.backend.model.UserPresence;
 import com.dms.backend.repository.ChatMessageRepository;
 import com.dms.backend.repository.ChatRoomRepository;
+import com.dms.backend.repository.UserPresenceRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -20,14 +22,17 @@ public class ChatService {
     private final ChatRoomRepository chatRoomRepository;
     private final ChatMessageRepository chatMessageRepository;
     private final SimpMessagingTemplate messagingTemplate;
+    private final UserPresenceRepository userPresenceRepository;
 
     public ChatService(
             ChatRoomRepository chatRoomRepository,
             ChatMessageRepository chatMessageRepository,
-            SimpMessagingTemplate messagingTemplate) {
+            SimpMessagingTemplate messagingTemplate,
+            UserPresenceRepository userPresenceRepository) {
         this.chatRoomRepository = chatRoomRepository;
         this.chatMessageRepository = chatMessageRepository;
         this.messagingTemplate = messagingTemplate;
+        this.userPresenceRepository = userPresenceRepository;
     }
 
     @Transactional
@@ -79,5 +84,63 @@ public class ChatService {
 
     public List<ChatRoom> getUserRooms(String userId) {
         return chatRoomRepository.findActiveRoomsByUserId(userId);
+    }
+
+    // Group chat creation
+    @Transactional
+    public ChatRoom createOrGetGroupChatRoom(String type, List<String> participantIds) {
+        String participantsStr = String.join(",", participantIds);
+        // Find existing group chat by type and participants
+        List<ChatRoom> existingRooms = chatRoomRepository.findAll();
+        for (ChatRoom room : existingRooms) {
+            if (room.getType().equals(type) && participantsStr.equals(room.getParticipants())) {
+                return room;
+            }
+        }
+        ChatRoom newRoom = new ChatRoom();
+        newRoom.setType(type);
+        newRoom.setParticipants(participantsStr);
+        newRoom.setActive(true);
+        return chatRoomRepository.save(newRoom);
+    }
+
+    // Presence
+    public void setUserOnline(String userId) {
+        UserPresence presence = userPresenceRepository.findById(userId).orElse(new UserPresence());
+        presence.setUserId(userId);
+        presence.setOnline(true);
+        presence.setLastSeen(LocalDateTime.now());
+        userPresenceRepository.save(presence);
+    }
+    public void setUserOffline(String userId) {
+        UserPresence presence = userPresenceRepository.findById(userId).orElse(new UserPresence());
+        presence.setUserId(userId);
+        presence.setOnline(false);
+        presence.setLastSeen(LocalDateTime.now());
+        userPresenceRepository.save(presence);
+    }
+    public boolean isUserOnline(String userId) {
+        return userPresenceRepository.findById(userId).map(UserPresence::isOnline).orElse(false);
+    }
+
+    // Message status
+    @Transactional
+    public void markMessageDelivered(Long messageId) {
+        chatMessageRepository.findById(messageId).ifPresent(msg -> {
+            msg.setDelivered(true);
+            chatMessageRepository.save(msg);
+        });
+    }
+    @Transactional
+    public void markMessageRead(Long messageId) {
+        chatMessageRepository.findById(messageId).ifPresent(msg -> {
+            msg.setRead(true);
+            chatMessageRepository.save(msg);
+        });
+    }
+
+    // Typing status (simple broadcast, not persisted)
+    public void sendTypingStatus(String roomId, String userId, boolean typing) {
+        messagingTemplate.convertAndSend("/topic/chat/" + roomId + "/typing", userId + (typing ? ":typing" : ":stopped"));
     }
 }

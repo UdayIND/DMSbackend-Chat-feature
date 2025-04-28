@@ -27,4 +27,7 @@ public class ChatRoom {
 
     @Column(nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    @Column(length = 1000)
+    private String participants; // Comma-separated user IDs for group chat
 }
