@@ -4,29 +4,47 @@ import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
 
-@Entity
 @Data
+@Entity
+@Table(name = "chat_messages", schema = "messaging")
 public class ChatMessage {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "room_id", nullable = false)
     private ChatRoom room;
 
-    @Column(nullable = false)
+    @Column(name = "sender_id", nullable = false)
     private String senderId;
+
+    @Column(name = "sender_role")
+    private String senderRole;
 
     @Column(nullable = false)
     private String content;
 
+    @Column(name = "created_at", nullable = false)
+    private LocalDateTime createdAt = LocalDateTime.now();
+
+    @Column(name = "delivered")
+    private boolean delivered = false;
+
+    @Column(name = "read")
+    private boolean read = false;
+
+    @Column(name = "attachment_url")
     private String attachmentUrl;
+
+    @Column(name = "attachment_type")
     private String attachmentType;
 
-    @Column(nullable = false)
-    private LocalDateTime timestamp = LocalDateTime.now();
+    @Column(name = "room_id", nullable = false)
+    private Long roomId;
 
-    private boolean read = false;
-    private boolean delivered = false;
+    // Convenience method to get roomId as String
+    public String getRoomId() {
+        return room != null ? String.valueOf(room.getId()) : null;
+    }
 }
