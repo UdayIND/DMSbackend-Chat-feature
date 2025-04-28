@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-import com.dms.backend.model.ChatMessage;
 import com.dms.backend.model.ChatRoom;
 
 @RestController
