@@ -66,7 +66,7 @@ public class ChatService {
                 .orElseThrow(() -> new RuntimeException("Chat room not found"));
 
         ChatMessage message = new ChatMessage();
-        message.setRoom(room);
+        message.setRoomId(room.getId());
         message.setSenderId(senderId);
         message.setContent(content);
         message.setAttachmentUrl(attachmentUrl);

@@ -48,7 +48,7 @@ public class ChatController {
     @PostMapping("/messages")
     public ResponseEntity<Void> sendMessage(@RequestBody ChatMessage message) {
         chatService.sendMessage(
-            message.getRoomId(),
+            String.valueOf(message.getRoomId()),
             message.getSenderId(),
             message.getContent(),
             message.getAttachmentUrl(),
@@ -59,10 +59,10 @@ public class ChatController {
 
     @GetMapping("/messages/{roomId}")
     public ResponseEntity<List<ChatMessage>> getChatHistory(
-            @PathVariable Long roomId,
+            @PathVariable String roomId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
-        return ResponseEntity.ok(chatService.getChatHistory(roomId, page, size));
+        return ResponseEntity.ok(chatService.getChatHistory(Long.parseLong(roomId), page, size));
     }
 
     @PostMapping("/messages/{messageId}/delivered")
@@ -81,7 +81,7 @@ public class ChatController {
     @MessageMapping("/chat.send")
     public void handleWebSocketMessage(@Payload ChatMessage message) {
         chatService.sendMessage(
-            message.getRoomId(),
+            String.valueOf(message.getRoomId()),
             message.getSenderId(),
             message.getContent(),
             message.getAttachmentUrl(),

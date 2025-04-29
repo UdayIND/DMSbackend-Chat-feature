@@ -14,8 +14,8 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
     
     Page<ChatMessage> findByRoomIdOrderByCreatedAtDesc(Long roomId, Pageable pageable);
     
-    @Query("SELECT DISTINCT m.roomId FROM ChatMessage m WHERE m.senderId = :userId OR m.roomId LIKE CONCAT('%', :userId, '%')")
-    List<String> findDistinctRoomIdsByUserId(@Param("userId") String userId);
+    @Query("SELECT DISTINCT m.roomId FROM ChatMessage m WHERE m.senderId = :userId")
+    List<Long> findDistinctRoomIdsByUserId(@Param("userId") String userId);
     
-    List<ChatMessage> findByRoomIdAndReadFalseAndSenderIdNot(String roomId, String userId);
+    List<ChatMessage> findByRoomIdAndReadFalseAndSenderIdNot(Long roomId, String userId);
 }

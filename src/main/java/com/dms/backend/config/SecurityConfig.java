@@ -23,7 +23,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/ws/**").permitAll()
                 .requestMatchers("/api/chat/**").permitAll()
-                .anyRequest().authenticated()
+                .requestMatchers("/api/**").permitAll()  // Allow all API endpoints
+                .anyRequest().permitAll()
             );
         
         return http.build();
